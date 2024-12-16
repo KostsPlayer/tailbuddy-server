@@ -102,7 +102,7 @@ router.post("/auth/choose-role", async (req, res) => {
       });
     }
 
-    const { data: userData, error: getError } = await supabase.from("users").select("user_id").eq("user_id", id);
+    const { data: userData, error: getError } = await supabase.from("users").select("user_id").eq("user_id", userID);
 
     if (getError) {
       console.error("Get error:", getError);
@@ -139,13 +139,13 @@ router.post("/auth/choose-role", async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Role updated successfully",
-      data: updatedData,
+      data: role,
     });
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({
       success: false,
-      message: updateError.message,
+      message: error.message,
     });
   }
 });
