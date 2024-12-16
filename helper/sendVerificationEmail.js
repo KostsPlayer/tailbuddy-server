@@ -13,8 +13,8 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendVerificationEmail = (email, token) => {
-  const verificationLink = `https://shopify-blissserver.vercel.app/verify-email?token=${token}`;
-  
+  const verificationLink = `https://tailbuddy-server.vercel.app/verify-email?token=${token}`;
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
@@ -40,9 +40,8 @@ export const sendVerificationEmail = (email, token) => {
       </html>
     `,
   };
-  
+
   return transporter.sendMail(mailOptions);
 };
-
 
 export default sendVerificationEmail;

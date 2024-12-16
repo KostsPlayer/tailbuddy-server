@@ -91,4 +91,63 @@ router.post("/auth/registration", async (req, res) => {
   }
 });
 
+router.post("/auth/choose-role", async (req, res) => {
+  try {
+    const { userID } = req.query;
+
+    if (!userID) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required.",
+      });
+    }
+
+    const { data: userData, error: getError } = await supabase.from("users").select("user_id").eq("user_id", id);
+
+    if (getError) {
+      console.error("Get error:", getError);
+      return res.status(500).json({
+        success: false,
+        message: getError.message,
+      });
+    }
+
+    if (userData.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `User with id = ${userID} not found`,
+      });
+    }
+
+    const { role } = req.body;
+
+    const { data: updatedData, error: updateError } = await supabase
+      .from("users")
+      .update({
+        role: role,
+      })
+      .eq("user_id", userID);
+
+    if (updateError) {
+      console.error("Update error:", updateError);
+      return res.status(500).json({
+        success: false,
+        message: updateError.message,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Role updated successfully",
+      data: updatedData,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: updateError.message,
+    });
+  }
+});
+
 export default router;
