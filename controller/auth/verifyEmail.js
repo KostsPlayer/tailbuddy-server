@@ -29,11 +29,11 @@ router.get("/verify-email", async (req, res) => {
 
     // Redirect ke halaman login
     return res.redirect(
-      `https://tailbuddy.vercel.app/login?message=Email%20verified%20successfully.`
+      `https://tailbuddy.vercel.app/choose-role?message=Email%20verified%20successfully.`
     );
   } catch (error) {
     return res.redirect(
-      `https://tailbuddy.vercel.app/login?message=Invalid or expired token`
+      `https://tailbuddy.vercel.app/choose-role?message=Invalid or expired token`
     );
   }
 });

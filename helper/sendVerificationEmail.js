@@ -21,7 +21,7 @@ export const sendVerificationEmail = (email, token) => {
     subject: "Verify Your Email",
     html: `
       <html>
-        <body>
+        <body>s
           <h2>Welcome! Please verify your email address</h2>
           <p>Thank you for registering. To complete your registration, please verify your email address by clicking the button below:</p>
           
