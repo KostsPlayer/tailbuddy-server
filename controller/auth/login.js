@@ -49,7 +49,11 @@ router.get("/auth/google/callback", async (req, res) => {
     const username = data.name || data.email;
 
     // Cek apakah user sudah ada di Supabase
-    const { data: existingUser, error } = await supabase.from("users").select("*").eq("email", data.email).single(); // Mengambil satu data jika ada
+    const { data: existingUser, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", data.email)
+      .single(); // Mengambil satu data jika ada
 
     if (error && error.code !== "PGRST116") {
       // Jika error bukan karena data tidak ditemukan
@@ -107,12 +111,19 @@ router.get("/auth/google/callback", async (req, res) => {
     );
 
     if (user.role === "admin") {
-      return res.redirect(`https://shopify-bliss.vercel.app/dashboard?shopify-bliss=${token}`);
+      return res.redirect(
+        `https://shopify-bliss.vercel.app/dashboard?shopify-bliss=${token}`
+      );
     } else if (user.role === "customer") {
-      return res.redirect(`https://shopify-bliss.vercel.app/profile?shopify-bliss=${token}`);
+      return res.redirect(
+        `https://shopify-bliss.vercel.app/profile?shopify-bliss=${token}`
+      );
     }
   } catch (error) {
-    console.error("Error during Google OAuth:", error?.response?.data || error.message);
+    console.error(
+      "Error during Google OAuth:",
+      error?.response?.data || error.message
+    );
     return res.status(500).json({
       message: "An error occurred during Google OAuth.",
       error: error?.response?.data || error.message,
@@ -132,7 +143,11 @@ router.post("/auth/login", async (req, res) => {
       });
     }
 
-    const { data: users, error } = await supabase.from("users").select("*").or(`email.eq.${email},username.eq.${username}`).limit(1);
+    const { data: users, error } = await supabase
+      .from("users")
+      .select("*")
+      .or(`email.eq.${email},username.eq.${username}`)
+      .limit(1);
 
     if (error) {
       throw new Error("Failed to fetch user");

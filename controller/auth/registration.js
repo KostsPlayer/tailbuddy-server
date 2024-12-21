@@ -33,7 +33,6 @@ router.post("/auth/registration", async (req, res) => {
     if (emailExists) {
       // Jika email sudah ada
       return res.status(400).json({
-        success: false,
         message: "Email already exists.",
       });
     }
@@ -48,7 +47,6 @@ router.post("/auth/registration", async (req, res) => {
     if (usernameExists) {
       // Jika username sudah ada
       return res.status(400).json({
-        success: false,
         message: "Username already exists.",
       });
     }
@@ -74,7 +72,6 @@ router.post("/auth/registration", async (req, res) => {
     }
 
     res.status(200).json({
-      success: true,
       message: "Registration successfully!",
     });
   } catch (error) {
@@ -85,13 +82,13 @@ router.post("/auth/registration", async (req, res) => {
   }
 });
 
-router.post("/auth/choose-role", async (req, res) => {
+router.put("/auth/choose-role", async (req, res) => {
   try {
     const { email } = req.query;
+    const { role } = req.body;
 
     if (!email) {
       return res.status(400).json({
-        success: false,
         message: "Email is required.",
       });
     }
@@ -106,50 +103,42 @@ router.post("/auth/choose-role", async (req, res) => {
 
     const { data: userData, error: getError } = await supabase
       .from("users")
-      .select("email")
+      .select("email, user_id")
       .eq("email", email);
 
     if (getError) {
       console.error("Get error:", getError);
       return res.status(500).json({
-        success: false,
         message: getError.message,
       });
     }
 
     if (userData.length === 0) {
       return res.status(404).json({
-        success: false,
         message: `Email ${email} is not found`,
       });
     }
-
-    const { role } = req.body;
 
     const { data: updatedData, error: updateError } = await supabase
       .from("users")
       .update({
         role: role,
       })
-      .eq("email", email);
+      .eq("user_id", userData[0].user_id);
 
     if (updateError) {
-      console.error("Update error:", updateError);
       return res.status(500).json({
-        success: false,
         message: updateError.message,
       });
     }
 
     return res.status(200).json({
-      success: true,
       message:
         "Role updated successfully. Please check your email to verify your account!",
     });
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({
-      success: false,
       message: error.message,
     });
   }
