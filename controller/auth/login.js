@@ -192,9 +192,6 @@ router.post("/login", async (req, res) => {
       role,
     };
 
-    // Debug payload
-    console.log("Payload for JWT:", payload);
-
     // Membuat token JWT
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "1h",
