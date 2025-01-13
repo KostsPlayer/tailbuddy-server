@@ -132,7 +132,7 @@ router.get("/auth/google/callback", async (req, res) => {
 });
 
 // Endpoint untuk login dengan email dan password
-router.post("/auth/login", async (req, res) => {
+router.post("/login", async (req, res) => {
   try {
     const { email, username, password } = req.body;
 
