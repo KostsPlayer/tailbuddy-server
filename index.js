@@ -6,6 +6,7 @@ import regitration from "./controller/auth/registration.js";
 import verify from "./controller/auth/verifyEmail.js";
 import login from "./controller/auth/login.js";
 import business from "./controller/business/business.js";
+import pets from "./controller/pets/pets.js";
 
 import roles from "./controller/roles/roles.js";
 
@@ -28,6 +29,7 @@ app.use("/auth", login);
 app.use("/api", roles);
 app.use(verify);
 app.use("/api", business);
+app.use("/api", pets);
 
 app.listen(port, () => {
   console.log(`running server on port ${port}`);
