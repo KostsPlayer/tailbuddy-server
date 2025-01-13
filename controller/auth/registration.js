@@ -106,8 +106,6 @@ router.put("/choose-role", async (req, res) => {
       .eq("email", email)
       .single();
 
-    console.log("userData:", userData);
-
     if (getError) {
       console.error("Get error:", getError);
       return res.status(500).json({
