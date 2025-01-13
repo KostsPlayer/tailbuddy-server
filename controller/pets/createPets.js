@@ -92,7 +92,7 @@ router.post("/pets/create", authenticateToken, upload.single("image"), async (re
   }
 });
 
-router.get("/pets/all", authenticateToken, async (req, res) => {
+router.get("/pets/all", async (req, res) => {
     try {
       const { data, error } = await supabase.from("pets").select("*");
   
