@@ -131,21 +131,24 @@ router.get("/auth/google/callback", async (req, res) => {
   }
 });
 
-// Endpoint untuk login dengan email dan password
 router.post("/login", async (req, res) => {
   try {
     const { email, username, password } = req.body;
 
-    // Cek apakah password tidak kosong dan salah satu antara email atau username ada
+    // Validasi input
     if (!password || (!email && !username)) {
       return res.status(400).json({
         message: "Password and either email or username are required.",
       });
     }
 
+    // Ambil data user beserta role dari tabel roles
     const { data: users, error } = await supabase
       .from("users")
-      .select("*")
+      .select(`
+        *,
+        roles:role_id (role, roles_id)
+      `)
       .or(`email.eq.${email},username.eq.${username}`)
       .limit(1);
 
@@ -159,15 +162,16 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // Cek apakah akun sudah diverifikasi
     const user = users[0];
+
+    // Cek apakah akun sudah diverifikasi
     if (!user.is_verified) {
       return res.status(403).json({
         message: "Account not verified. Please verify your account.",
       });
     }
 
-    // Cek apakah password benar
+    // Cek password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({
@@ -175,21 +179,28 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // Membuat token JWT
-    const token = jwt.sign(
-      {
-        user_id: user.user_id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1h",
-      }
-    );
+    // Ambil role_id dan role name
+    const role_id = user.roles.roles_id;
+    const role = user.roles.role;
 
-    // Mengirim token dalam response
+    // Buat payload JWT
+    const payload = {
+      user_id: user.users_id,
+      username: user.username,
+      email: user.email,
+      role_id,
+      role,
+    };
+
+    // Debug payload
+    console.log("Payload for JWT:", payload);
+
+    // Membuat token JWT
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    // Kirim token dalam response
     res.json({
       message: "Login successfully.",
       token,
@@ -199,5 +210,6 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ message: "An error occurred during login", error });
   }
 });
+
 
 export default router;
