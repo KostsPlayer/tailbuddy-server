@@ -11,7 +11,7 @@ const app = express();
 configureMiddleware(app);
 const router = express.Router();
 
-router.post("/auth/registration", async (req, res) => {
+router.post("/registration", async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
@@ -23,32 +23,31 @@ router.post("/auth/registration", async (req, res) => {
       });
     }
 
-    // Query untuk memeriksa apakah email sudah ada
-    const { data: emailExists, error: emailError } = await supabase
+    // Gabungan validasi email dan username
+    const { data: existingUser, error: userCheckError } = await supabase
       .from("users")
-      .select("email") // Pilih kolom spesifik untuk efisiensi
-      .eq("email", email)
+      .select("email, username")
+      .or(`email.eq.${email},username.eq.${username}`)
       .single();
 
-    if (emailExists) {
-      // Jika email sudah ada
-      return res.status(400).json({
-        message: "Email already exists.",
-      });
+    if (existingUser) {
+      if (existingUser.email === email) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already exists.",
+        });
+      }
+      if (existingUser.username === username) {
+        return res.status(400).json({
+          success: false,
+          message: "Username already exists.",
+        });
+      }
     }
 
-    // Query untuk memeriksa apakah username sudah ada
-    const { data: usernameExists, error: usernameError } = await supabase
-      .from("users")
-      .select("username") // Pilih kolom spesifik untuk efisiensi
-      .eq("username", username)
-      .single();
-
-    if (usernameExists) {
-      // Jika username sudah ada
-      return res.status(400).json({
-        message: "Username already exists.",
-      });
+    if (userCheckError && userCheckError.code !== "PGRST116") {
+      // Handle unexpected error
+      throw new Error(userCheckError.message);
     }
 
     // Jika email dan username belum ada, lanjutkan proses pendaftaran
@@ -60,7 +59,7 @@ router.post("/auth/registration", async (req, res) => {
         username: username,
         email: email,
         password: hashedPassword,
-        role: "customer",
+        role_id: "91a8a216-31ed-4945-8b82-cbc87b044739",
         created_at: created_at,
         updated_at: created_at,
         is_verified: false,
@@ -82,10 +81,10 @@ router.post("/auth/registration", async (req, res) => {
   }
 });
 
-router.put("/auth/choose-role", async (req, res) => {
+router.put("/choose-role", async (req, res) => {
   try {
     const { email } = req.query;
-    const { role } = req.body;
+    const { role_id } = req.body;
 
     if (!email) {
       return res.status(400).json({
@@ -103,8 +102,11 @@ router.put("/auth/choose-role", async (req, res) => {
 
     const { data: userData, error: getError } = await supabase
       .from("users")
-      .select("email, user_id")
-      .eq("email", email);
+      .select("email, users_id")
+      .eq("email", email)
+      .single();
+
+    console.log("userData:", userData);
 
     if (getError) {
       console.error("Get error:", getError);
@@ -122,9 +124,10 @@ router.put("/auth/choose-role", async (req, res) => {
     const { data: updatedData, error: updateError } = await supabase
       .from("users")
       .update({
-        role: role,
+        role_id: role_id,
       })
-      .eq("user_id", userData[0].user_id);
+      .eq("users_id", userData.users_id)
+      .single();
 
     if (updateError) {
       return res.status(500).json({
