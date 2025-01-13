@@ -6,7 +6,7 @@ import regitration from "./controller/auth/registration.js";
 import verify from "./controller/auth/verifyEmail.js";
 import login from "./controller/auth/login.js";
 import business from "./controller/business/business.js";
-import pets from "./controller/pets/pets.js";
+import pets from "./controller/pets/createPets.js";
 
 import roles from "./controller/roles/roles.js";
 

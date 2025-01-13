@@ -13,7 +13,7 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-router.post("/create", authenticateToken, upload.single("image"), async (req, res) => {
+router.post("/pets/create", authenticateToken, upload.single("image"), async (req, res) => {
   try {
     const { pet, location, price } = req.body;
     const file = req.file; // File gambar yang diupload
@@ -92,7 +92,7 @@ router.post("/create", authenticateToken, upload.single("image"), async (req, re
   }
 });
 
-router.get("/all", authenticateToken, async (req, res) => {
+router.get("/pets/all", authenticateToken, async (req, res) => {
     try {
       const { data, error } = await supabase.from("pets").select("*");
   
@@ -118,7 +118,7 @@ router.get("/all", authenticateToken, async (req, res) => {
     }
   });
 
-  router.get("/:id", authenticateToken, async (req, res) => {
+  router.get("/pets/:id", authenticateToken, async (req, res) => {
     try {
       const { id } = req.params;
   
@@ -146,7 +146,7 @@ router.get("/all", authenticateToken, async (req, res) => {
     }
   });
 
-  router.put("/update/:id", authenticateToken, upload.single("image"), async (req, res) => {
+  router.put("/pets/update/:id", authenticateToken, upload.single("image"), async (req, res) => {
     try {
       const { id } = req.params;
       const { pet, location, price } = req.body;
@@ -213,7 +213,7 @@ router.get("/all", authenticateToken, async (req, res) => {
     }
   });
 
-  router.delete("/delete/:id", authenticateToken, async (req, res) => {
+  router.delete("/pets/delete/:id", authenticateToken, async (req, res) => {
     try {
       const { id } = req.params;
   
