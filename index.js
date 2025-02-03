@@ -11,6 +11,7 @@ import businessCategories from "./controller/businessCategory/businessCategories
 import trasaction from "./controller/transaction/transaction.js";
 import product from "./controller/products/products.js";
 import user from "./controller/users/users.js";
+import petCategory from "./controller/petCategory/petCategory.js";
 
 import roles from "./controller/roles/roles.js";
 
@@ -37,6 +38,7 @@ app.use("/api", businessCategories);
 app.use("/api", trasaction);
 app.use("/api", product);
 app.use("/api", user);
+app.use("/api", petCategory);
 
 app.listen(port, () => {
   console.log(`running server on port ${port}`);
