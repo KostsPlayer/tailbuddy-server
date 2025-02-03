@@ -36,6 +36,20 @@ router.post("/transactions/create", authenticateToken, async (req, res) => {
       });
     }
 
+    const { available } = false;
+
+    const { data: updatePet, error: updatePetError } = await supabase.from("pets").update({ available }).eq("pets_id", pet_id);
+
+    console.log(updatePet);
+
+    if (updatePetError) {
+      return res.status(400).json({
+        success: false,
+        message: "Failed to update pet availability.",
+        error: updatePetError.message,
+      });
+    }
+
     const { data: transaction, error } = await supabase.from("transactions").insert([
       {
         user_id,

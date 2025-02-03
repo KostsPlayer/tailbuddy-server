@@ -21,7 +21,7 @@ router.post("/pets/create", authenticateToken, upload.single("image"), async (re
 
     // Ambil user_id dari token JWT
     const user_id = req.user.user_id; // `user_id` dari payload token
-    const availabe = true;
+    const available = true;
 
     // Validasi input
     if (!pet || !file || !location || !price || !petCategory) {
@@ -69,7 +69,7 @@ router.post("/pets/create", authenticateToken, upload.single("image"), async (re
         created_at,
         updated_at: created_at,
         pet_category_id: petCategory,
-        availabe,
+        available,
       },
     ]);
 
