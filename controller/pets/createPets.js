@@ -21,9 +21,10 @@ router.post("/pets/create", authenticateToken, upload.single("image"), async (re
 
     // Ambil user_id dari token JWT
     const user_id = req.user.user_id; // `user_id` dari payload token
+    const availabe = true;
 
     // Validasi input
-    if (!pet || !file || !location || !price|| !petCategory) {
+    if (!pet || !file || !location || !price || !petCategory) {
       return res.status(400).json({
         success: false,
         message: "All fields are required, including an image.",
@@ -68,6 +69,7 @@ router.post("/pets/create", authenticateToken, upload.single("image"), async (re
         created_at,
         updated_at: created_at,
         pet_category_id: petCategory,
+        availabe,
       },
     ]);
 
@@ -150,7 +152,7 @@ router.get("/pets/:id", authenticateToken, async (req, res) => {
 router.put("/pets/update/:id", authenticateToken, upload.single("image"), async (req, res) => {
   try {
     const { id } = req.params;
-    const { pet, location, price, petCategory } = req.body;
+    const { pet, location, price, petCategory, availabe } = req.body;
     const file = req.file;
 
     const updated_at = moment().format("YYYY-MM-DD HH:mm:ss");
@@ -183,13 +185,14 @@ router.put("/pets/update/:id", authenticateToken, upload.single("image"), async 
       price,
       updated_at,
       pet_category_id: petCategory,
+      availabe
     };
 
     if (image) {
       updateData.image = image;
     }
 
-    const { data, error } = await supabase.from("pets").update(updateData).eq("pets_id", id).select('*').single();
+    const { data, error } = await supabase.from("pets").update(updateData).eq("pets_id", id).select("*").single();
 
     if (error) {
       return res.status(400).json({
