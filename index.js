@@ -9,6 +9,8 @@ import business from "./controller/business/business.js";
 import pets from "./controller/pets/createPets.js";
 import businessCategories from "./controller/businessCategory/businessCategories.js";
 import trasaction from "./controller/transaction/transaction.js";
+import product from "./controller/products/products.js";
+import user from "./controller/users/users.js";
 
 import roles from "./controller/roles/roles.js";
 
@@ -33,6 +35,8 @@ app.use("/api", business);
 app.use("/api", pets);
 app.use("/api", businessCategories);
 app.use("/api", trasaction);
+app.use("/api", product);
+app.use("/api", user);
 
 app.listen(port, () => {
   console.log(`running server on port ${port}`);
