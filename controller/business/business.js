@@ -12,70 +12,74 @@ const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Create a new business
-router.post("/business", authenticateToken, upload.single("image"), async (req, res) => {
-  try {
-    const { business, business_category_id } = req.body;
+router.post(
+  "/business",
+  authenticateToken,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const { business, business_category_id } = req.body;
 
-    // Handle image upload
-    let imageName = null;
-    if (req.file) {
-      const { originalname, buffer } = req.file;
-      const fileExt = originalname.split(".").pop();
-      imageName = `${Date.now()}.${fileExt}`;
+      // Handle image upload
+      let imageName = null;
+      if (req.file) {
+        const { originalname, buffer } = req.file;
+        imageName = `${Date.now()}-${originalname}`;
 
-      const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
+          .from("business")
+          .upload(`${imageName}`, buffer, {
+            contentType: req.file.mimetype,
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.error("Image upload error:", uploadError);
+          return res.status(500).json({
+            success: false,
+            message: "Image upload failed",
+          });
+        }
+      }
+
+      const { data: newBusiness, error: insertError } = await supabase
         .from("business")
-        .upload(`business_images/${imageName}`, buffer, {
-          contentType: req.file.mimetype,
-          upsert: true,
-        });
+        .insert({
+          business,
+          business_category_id,
+          image: imageName,
+        })
+        .select("*");
 
-      if (uploadError) {
-        console.error("Image upload error:", uploadError);
+      if (insertError) {
+        console.error("Insert error:", insertError);
         return res.status(500).json({
           success: false,
-          message: "Image upload failed",
+          message: insertError.message,
         });
       }
-    }
 
-    const { data: newBusiness, error: insertError } = await supabase
-      .from("business")
-      .insert({
-        business,
-        business_category_id,
-        image: imageName,
-      })
-      .select("*");
-
-    if (insertError) {
-      console.error("Insert error:", insertError);
+      return res.status(200).json({
+        success: true,
+        message: "Business has been added",
+        data: newBusiness,
+      });
+    } catch (error) {
+      console.error("Error:", error);
       return res.status(500).json({
         success: false,
-        message: insertError.message,
+        message: "Internal server error",
       });
     }
-
-    return res.status(200).json({
-      success: true,
-      message: "Business has been added",
-      data: newBusiness,
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
   }
-});
+);
 
 // Retrieve all businesses
 router.get("/business", async (req, res) => {
   try {
     const { data: businesses, error: getError } = await supabase
       .from("business")
-      .select("*")
+      .select("*, business_categories(name)")
       .order("created_at", { ascending: true });
 
     if (getError) {
@@ -140,71 +144,108 @@ router.get("/business-id", async (req, res) => {
 });
 
 // Update business by ID
-router.put("/business", authenticateToken, upload.single("image"), async (req, res) => {
-  try {
-    const { id } = req.query;
-    const { business, business_category_id } = req.body;
+router.put(
+  "/business",
+  authenticateToken,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const { id } = req.query;
+      const { business, business_category_id } = req.body;
 
-    // Handle image upload
-    let imageName = null;
-    if (req.file) {
-      const { originalname, buffer } = req.file;
-      const fileExt = originalname.split(".").pop();
-      imageName = `${Date.now()}.${fileExt}`;
+      // Handle image upload
+      let imageName = null;
+      if (req.file) {
+        const { originalname, buffer } = req.file;
+        imageName = `${Date.now()}-${originalname}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("your-bucket-name") // Replace with your bucket name
-        .upload(`business_images/${imageName}`, buffer, {
-          contentType: req.file.mimetype,
-          upsert: true,
-        });
+        const { error: uploadError } = await supabase.storage
+          .from("business")
+          .upload(`${imageName}`, buffer, {
+            contentType: req.file.mimetype,
+            upsert: true,
+          });
 
-      if (uploadError) {
-        console.error("Image upload error:", uploadError);
+        if (uploadError) {
+          console.error("Image upload error:", uploadError);
+          return res.status(500).json({
+            success: false,
+            message: "Image upload failed",
+          });
+        }
+      }
+
+      const { data: updatedBusiness, error: updateError } = await supabase
+        .from("business")
+        .update({
+          business,
+          business_category_id,
+          ...(imageName && { image: imageName }),
+        })
+        .eq("business_id", id)
+        .select("*");
+
+      if (updateError) {
+        console.error("Update error:", updateError);
         return res.status(500).json({
           success: false,
-          message: "Image upload failed",
+          message: updateError.message,
         });
       }
-    }
 
-    const { data: updatedBusiness, error: updateError } = await supabase
-      .from("business")
-      .update({
-        business,
-        business_category_id,
-        ...(imageName && { image: imageName }),
-      })
-      .eq("business_id", id)
-      .select("*");
-
-    if (updateError) {
-      console.error("Update error:", updateError);
+      return res.status(200).json({
+        success: true,
+        message: "Business has been updated",
+        data: updatedBusiness,
+      });
+    } catch (error) {
+      console.error("Error:", error);
       return res.status(500).json({
         success: false,
-        message: updateError.message,
+        message: "Internal server error",
       });
     }
-
-    return res.status(200).json({
-      success: true,
-      message: "Business has been updated",
-      data: updatedBusiness,
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
   }
-});
+);
 
 // Delete business by ID
 router.delete("/business", authenticateToken, async (req, res) => {
   try {
     const { id } = req.query;
 
+    // Ambil data bisnis terlebih dahulu untuk mendapatkan path gambar
+    const { data: businessData, error: businessError } = await supabase
+      .from("business")
+      .select("image")
+      .eq("business_id", id)
+      .single();
+
+    if (businessError || !businessData) {
+      return res.status(404).json({
+        success: false,
+        message: "Business not found.",
+      });
+    }
+
+    const imagePath = businessData.image;
+
+    // Hapus gambar dari Supabase Storage jika ada
+    if (imagePath) {
+      const { error: deleteImageError } = await supabase.storage
+        .from("business")
+        .remove([imagePath]);
+
+      if (deleteImageError) {
+        console.error("Failed to delete image:", deleteImageError);
+        return res.status(500).json({
+          success: false,
+          message: "Failed to delete image from storage.",
+          error: deleteImageError.message,
+        });
+      }
+    }
+
+    // Hapus data bisnis dari tabel setelah gambar berhasil dihapus
     const { data: deletedBusiness, error: deleteError } = await supabase
       .from("business")
       .delete()
@@ -221,7 +262,7 @@ router.delete("/business", authenticateToken, async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Business has been deleted",
+      message: "Business and associated image deleted successfully!",
       data: deletedBusiness,
     });
   } catch (error) {

@@ -12,7 +12,6 @@ import trasaction from "./controller/transaction/transaction.js";
 
 import roles from "./controller/roles/roles.js";
 
-
 dotenv.config();
 
 const port = 3000;

@@ -18,11 +18,15 @@ const authenticateToken = (req, res, next) => {
 
     jwt.verify(tokenHeader, process.env.JWT_SECRET, (err, user) => {
       if (err) {
+        console.log("Error:", err);
+
         return res.status(403).json({
           success: false,
           message: "Invalid token",
         });
       }
+
+      console.log("User:", user);
 
       req.user = user; // Tambahkan user ke request
       next();

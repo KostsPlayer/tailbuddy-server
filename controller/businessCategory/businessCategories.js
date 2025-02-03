@@ -12,12 +12,16 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-router.post("/businessCategory/create", authenticateToken, upload.single("image"), async (req, res) => {
+router.post(
+  "/businessCategory/create",
+  authenticateToken,
+  upload.single("image"),
+  async (req, res) => {
     try {
       const { name } = req.body;
       const file = req.file;
       const created_at = moment().format("YYYY-MM-DD HH:mm:ss");
-  
+
       // Validasi input
       if (!name || !file) {
         return res.status(400).json({
@@ -25,15 +29,15 @@ router.post("/businessCategory/create", authenticateToken, upload.single("image"
           message: "Name and image are required.",
         });
       }
-  
+
       // Upload gambar ke Supabase Storage
-      const fileName = `business_categories/${Date.now()}-${file.originalname}`;
+      const fileName = `${Date.now()}-${file.originalname}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("business_categories")
         .upload(fileName, file.buffer, {
           contentType: file.mimetype,
         });
-  
+
       if (uploadError) {
         return res.status(500).json({
           success: false,
@@ -41,30 +45,33 @@ router.post("/businessCategory/create", authenticateToken, upload.single("image"
           error: uploadError.message,
         });
       }
-  
-      const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/${uploadData.path}`;
-  
+
+      const image = uploadData.path;
+
       // Simpan data ke tabel
-      const { data, error } = await supabase.from("business_categories").insert([
-        {
-          name,
-          image: imageUrl,
-          created_at,
-          updated_at: created_at,
-        },
-      ]);
-  
+      const { data, error } = await supabase
+        .from("business_categories")
+        .insert([
+          {
+            name,
+            image: image,
+            created_at,
+            updated_at: created_at,
+          },
+        ])
+        .single();
+
       if (error) {
         return res.status(400).json({
           success: false,
           message: error.message,
         });
       }
-  
+
       return res.status(200).json({
         success: true,
         message: "Business category created successfully!",
-        data,
+        data: data,
       });
     } catch (error) {
       return res.status(500).json({
@@ -73,79 +80,90 @@ router.post("/businessCategory/create", authenticateToken, upload.single("image"
         error: error.message,
       });
     }
-  });
+  }
+);
 
-  router.get("/businessCategory/all", authenticateToken, async (req, res) => {
-    try {
-      const { data, error } = await supabase.from("business_categories").select("*");
-  
-      if (error) {
-        return res.status(400).json({
-          success: false,
-          message: error.message,
-        });
-      }
-  
-      return res.status(200).json({
-        success: true,
-        message: "Business categories fetched successfully!",
-        data,
-      });
-    } catch (error) {
-      return res.status(500).json({
+router.get("/businessCategory/all", authenticateToken, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("business_categories")
+      .select("*");
+
+    if (error) {
+      return res.status(400).json({
         success: false,
-        message: "An error occurred while fetching business categories.",
-        error: error.message,
+        message: error.message,
       });
     }
-  });
 
-  router.get("/businessCategory/:id", authenticateToken, async (req, res) => {
-    try {
-      const { id } = req.params;
-  
-      const { data, error } = await supabase.from("business_categories").select("*").eq("business_categories_id", id).single();
-  
-      if (error) {
-        return res.status(404).json({
-          success: false,
-          message: "Business category not found.",
-        });
-      }
-  
-      return res.status(200).json({
-        success: true,
-        message: "Business category fetched successfully!",
-        data,
-      });
-    } catch (error) {
-      return res.status(500).json({
+    return res.status(200).json({
+      success: true,
+      message: "Business categories fetched successfully!",
+      data,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching business categories.",
+      error: error.message,
+    });
+  }
+});
+
+router.get("/businessCategory/:id", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabase
+      .from("business_categories")
+      .select("*")
+      .eq("business_categories_id", id)
+      .single();
+
+    if (error) {
+      return res.status(404).json({
         success: false,
-        message: "An error occurred while fetching the business category.",
-        error: error.message,
+        message: "Business category not found.",
       });
     }
-  });
 
-  router.put("/businessCategory/update/:id", authenticateToken, upload.single("image"), async (req, res) => {
+    return res.status(200).json({
+      success: true,
+      message: "Business category fetched successfully!",
+      data,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching the business category.",
+      error: error.message,
+    });
+  }
+});
+
+router.put(
+  "/businessCategory/update/:id",
+  authenticateToken,
+  upload.single("image"),
+  async (req, res) => {
     try {
       const { id } = req.params;
       const { name } = req.body;
       const file = req.file;
-  
+
       const updated_at = moment().format("YYYY-MM-DD HH:mm:ss");
-  
-      let imageUrl;
-  
+
+      let image;
+
       if (file) {
         // Upload gambar baru ke Supabase Storage
-        const fileName = `business_categories/${Date.now()}-${file.originalname}`;
+        const fileName = `${Date.now()}-${file.originalname}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from("business_categories")
           .upload(fileName, file.buffer, {
             contentType: file.mimetype,
           });
-  
+
         if (uploadError) {
           return res.status(500).json({
             success: false,
@@ -153,28 +171,32 @@ router.post("/businessCategory/create", authenticateToken, upload.single("image"
             error: uploadError.message,
           });
         }
-  
-        imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/${uploadData.path}`;
+
+        image = uploadData.path;
       }
-  
+
       const updateData = {
         name,
         updated_at,
       };
-  
-      if (imageUrl) {
-        updateData.image = imageUrl;
+
+      if (image) {
+        updateData.image = image;
       }
-  
-      const { data, error } = await supabase.from("business_categories").update(updateData).eq("business_categories_id", id).single();
-  
+
+      const { data, error } = await supabase
+        .from("business_categories")
+        .update(updateData)
+        .eq("business_categories_id", id)
+        .single();
+
       if (error) {
         return res.status(400).json({
           success: false,
           message: error.message,
         });
       }
-  
+
       return res.status(200).json({
         success: true,
         message: "Business category updated successfully!",
@@ -187,31 +209,63 @@ router.post("/businessCategory/create", authenticateToken, upload.single("image"
         error: error.message,
       });
     }
-  });
+  }
+);
 
-  router.delete("/businessCategory/delete/:id", authenticateToken, async (req, res) => {
+router.delete(
+  "/businessCategory/delete/:id",
+  authenticateToken,
+  async (req, res) => {
     try {
       const { id } = req.params;
-  
-      const { data, error } = await supabase.from("business_categories").delete().eq("business_categories_id", id);
-  
+
+      // Ambil data kategori bisnis untuk mendapatkan path gambar
+      const { data: categoryData, error: categoryError } = await supabase
+        .from("business_categories")
+        .select("image")
+        .eq("business_categories_id", id)
+        .single();
+
+      if (categoryError || !categoryData) {
+        return res.status(404).json({
+          success: false,
+          message: "Business category not found.",
+        });
+      }
+
+      const imagePath = categoryData.image;
+
+      // Hapus gambar dari Supabase Storage
+      if (imagePath) {
+        const { error: deleteImageError } = await supabase.storage
+          .from("business_categories")
+          .remove([imagePath]);
+
+        if (deleteImageError) {
+          return res.status(500).json({
+            success: false,
+            message: "Failed to delete image from storage.",
+            error: deleteImageError.message,
+          });
+        }
+      }
+
+      // Hapus data kategori bisnis dari tabel
+      const { error } = await supabase
+        .from("business_categories")
+        .delete()
+        .eq("business_categories_id", id);
+
       if (error) {
         return res.status(400).json({
           success: false,
           message: error.message,
         });
       }
-  
-      if (data.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: "Business category not found.",
-        });
-      }
-  
+
       return res.status(200).json({
         success: true,
-        message: "Business category deleted successfully!",
+        message: "Business category and associated image deleted successfully!",
       });
     } catch (error) {
       return res.status(500).json({
@@ -220,6 +274,7 @@ router.post("/businessCategory/create", authenticateToken, upload.single("image"
         error: error.message,
       });
     }
-  });
+  }
+);
 
-  export default router;
+export default router;
