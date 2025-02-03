@@ -71,7 +71,7 @@ router.post("/transactions/create", authenticateToken, async (req, res) => {
 // Get All Transactions
 router.get("/transactions", authenticateToken, async (req, res) => {
   try {
-    const { data, error } = await supabase.from("transactions").select("*");
+    const { data, error } = await supabase.from("transactions").select(`*, pets(*)`);
 
     if (error) {
       return res.status(400).json({
@@ -100,7 +100,7 @@ router.get("/transactions/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase.from("transactions").select("*").eq("transactions_id", id).single();
+    const { data, error } = await supabase.from("transactions").select(`*, pets(*)`).eq("transactions_id", id).single();
 
     if (error) {
       return res.status(404).json({
@@ -128,7 +128,7 @@ router.get("/transactions-buyer", authenticateToken, async (req, res) => {
   try {
     const user_id = req.user.user_id;
 
-    const { data, error } = await supabase.from("transactions").select("*").eq("user_id", user_id);
+    const { data, error } = await supabase.from("transactions").select(`*, pets(*)`).eq("user_id", user_id);
 
     if (error) {
       return res.status(404).json({
@@ -156,7 +156,7 @@ router.get("/transactions-seller", authenticateToken, async (req, res) => {
   try {
     const seller_id = req.user.user_id;
 
-    const { data, error } = await supabase.from("transactions").select("*").eq("seller_id", seller_id);
+    const { data, error } = await supabase.from("transactions").select(`*, pets(*)`).eq("seller_id", seller_id);
 
     if (error) {
       return res.status(404).json({
