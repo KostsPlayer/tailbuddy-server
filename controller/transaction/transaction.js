@@ -1,5 +1,4 @@
 import express from "express";
-import moment from "moment";
 import supabase from "./../../config/supabase.js";
 import configureMiddleware from "./../../config/middleware.js";
 import authenticateToken from "../../helper/token.js";
@@ -10,28 +9,21 @@ const router = express.Router();
 
 router.post("/transactions/create", authenticateToken, async (req, res) => {
   try {
-    const { pet_id, price, status } = req.body;
-    const transaction_date = moment().format("YYYY-MM-DD HH:mm:ss");
+    const { pet_id, status } = req.body;
     const user_id = req.user.user_id;
 
-    if (!pet_id || !price || !status) {
+    if (!pet_id || !status) {
       return res.status(400).json({
         success: false,
-        message: "All fields (pet_id, price, status) are required.",
-      });
-    }
-
-    if (isNaN(price) || price < 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Price must be a positive number.",
+        message: "All fields (pet_id, status) are required.",
       });
     }
 
     if (!["pending", "done", "cancelled"].includes(status)) {
       return res.status(400).json({
         success: false,
-        message: "Status must be one of the following: 'pending', 'done', 'cancelled'.",
+        message:
+          "Status must be one of the following: 'pending', 'done', 'cancelled'.",
       });
     }
 
@@ -52,11 +44,8 @@ router.post("/transactions/create", authenticateToken, async (req, res) => {
       {
         user_id,
         pet_id,
-        price,
-        transaction_date,
         status,
-        created_at: transaction_date,
-        updated_at: transaction_date,
+        seller_id: petData.user_id,
       },
     ]);
 
@@ -159,7 +148,8 @@ router.put("/transactions/:id", authenticateToken, async (req, res) => {
     if (status && !["pending", "done", "cancelled"].includes(status)) {
       return res.status(400).json({
         success: false,
-        message: "Status must be one of the following: 'pending', 'done', 'cancelled'.",
+        message:
+          "Status must be one of the following: 'pending', 'done', 'cancelled'.",
       });
     }
 
