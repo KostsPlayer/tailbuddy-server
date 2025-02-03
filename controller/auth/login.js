@@ -145,10 +145,12 @@ router.post("/login", async (req, res) => {
     // Ambil data user beserta role dari tabel roles
     const { data: users, error } = await supabase
       .from("users")
-      .select(`
+      .select(
+        `
         *,
         roles:role_id (role, roles_id)
-      `)
+      `
+      )
       .or(`email.eq.${email},username.eq.${username}`)
       .limit(1);
 
@@ -180,16 +182,10 @@ router.post("/login", async (req, res) => {
     }
 
     // Ambil role_id dan role name
-    const role_id = user.roles.roles_id;
-    const role = user.roles.role;
 
     // Buat payload JWT
     const payload = {
       user_id: user.users_id,
-      username: user.username,
-      email: user.email,
-      role_id,
-      role,
     };
 
     // Membuat token JWT
@@ -207,6 +203,5 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ message: "An error occurred during login", error });
   }
 });
-
 
 export default router;

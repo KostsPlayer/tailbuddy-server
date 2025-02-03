@@ -130,7 +130,7 @@ router.get("/pets/:id", authenticateToken, async (req, res) => {
     const { data, error } = await supabase
       .from("pets")
       .select("*")
-      .eq("id", id)
+      .eq("pets_id", id)
       .single();
 
     if (error) {
