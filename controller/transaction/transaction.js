@@ -2,6 +2,7 @@ import express from "express";
 import supabase from "./../../config/supabase.js";
 import configureMiddleware from "./../../config/middleware.js";
 import authenticateToken from "../../helper/token.js";
+import moment from "moment";
 
 const app = express();
 configureMiddleware(app);
@@ -22,16 +23,11 @@ router.post("/transactions/create", authenticateToken, async (req, res) => {
     if (!["pending", "done", "cancelled"].includes(status)) {
       return res.status(400).json({
         success: false,
-        message:
-          "Status must be one of the following: 'pending', 'done', 'cancelled'.",
+        message: "Status must be one of the following: 'pending', 'done', 'cancelled'.",
       });
     }
 
-    const { data: petData, error: petError } = await supabase
-      .from("pets")
-      .select("*")
-      .eq("pets_id", pet_id)
-      .single();
+    const { data: petData, error: petError } = await supabase.from("pets").select("*").eq("pets_id", pet_id).single();
 
     if (petError || !petData) {
       return res.status(404).json({
@@ -40,7 +36,7 @@ router.post("/transactions/create", authenticateToken, async (req, res) => {
       });
     }
 
-    const { data, error } = await supabase.from("transactions").insert([
+    const { data: transaction, error } = await supabase.from("transactions").insert([
       {
         user_id,
         pet_id,
@@ -60,7 +56,7 @@ router.post("/transactions/create", authenticateToken, async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Transaction created successfully!",
-      data: data,
+      data: transaction,
     });
   } catch (error) {
     console.error("Error:", error);
@@ -104,13 +100,65 @@ router.get("/transactions/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase
-      .from("transactions")
-      .select("*")
-      .eq("transaction_id", id)
-      .single();
+    const { data, error } = await supabase.from("transactions").select("*").eq("transactions_id", id).single();
 
-    if (error || !data) {
+    if (error) {
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching the transaction.",
+      error: error.message,
+    });
+  }
+});
+
+// Get Transaction By Buyer
+router.get("/transactions-buyer", authenticateToken, async (req, res) => {
+  try {
+    const user_id = req.user.user_id;
+
+    const { data, error } = await supabase.from("transactions").select("*").eq("user_id", user_id);
+
+    if (error) {
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching the transaction.",
+      error: error.message,
+    });
+  }
+});
+
+// Get Transaction By seller
+router.get("/transactions-seller", authenticateToken, async (req, res) => {
+  try {
+    const seller_id = req.user.user_id;
+
+    const { data, error } = await supabase.from("transactions").select("*").eq("seller_id", seller_id);
+
+    if (error) {
       return res.status(404).json({
         success: false,
         message: "Transaction not found.",
@@ -135,34 +183,32 @@ router.get("/transactions/:id", authenticateToken, async (req, res) => {
 router.put("/transactions/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { price, status } = req.body;
+    const { pet_id, status } = req.body;
     const updated_at = moment().format("YYYY-MM-DD HH:mm:ss");
-
-    if (price !== undefined && (isNaN(price) || price < 0)) {
-      return res.status(400).json({
-        success: false,
-        message: "Price must be a positive number.",
-      });
-    }
 
     if (status && !["pending", "done", "cancelled"].includes(status)) {
       return res.status(400).json({
         success: false,
-        message:
-          "Status must be one of the following: 'pending', 'done', 'cancelled'.",
+        message: "Status must be one of the following: 'pending', 'done', 'cancelled'.",
+      });
+    }
+
+    const { data: petData, error: petError } = await supabase.from("pets").select("*").eq("pets_id", pet_id).single();
+
+    if (petError || !petData) {
+      return res.status(404).json({
+        success: false,
+        message: "Pet not found or unavailable.",
       });
     }
 
     const updates = {
-      ...(price && { price }),
       ...(status && { status }),
+      seller_id: petData.user_id,
       updated_at,
     };
 
-    const { data, error } = await supabase
-      .from("transactions")
-      .update(updates)
-      .eq("transaction_id", id);
+    const { data, error } = await supabase.from("transactions").update(updates).eq("transactions_id", id).select("*");
 
     if (error) {
       return res.status(400).json({
@@ -192,10 +238,9 @@ router.delete("/transactions/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase
-      .from("transactions")
-      .delete()
-      .eq("transaction_id", id);
+    console.log(id);
+
+    const { data, error } = await supabase.from("transactions").delete().eq("transactions_id", id).select("*");
 
     if (error) {
       return res.status(400).json({
@@ -205,16 +250,10 @@ router.delete("/transactions/:id", authenticateToken, async (req, res) => {
       });
     }
 
-    if (!data.length) {
-      return res.status(404).json({
-        success: false,
-        message: "Transaction not found.",
-      });
-    }
-
     return res.status(200).json({
       success: true,
       message: "Transaction deleted successfully!",
+      data,
     });
   } catch (error) {
     console.error("Error:", error);
