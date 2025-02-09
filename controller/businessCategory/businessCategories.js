@@ -83,7 +83,7 @@ router.post(
   }
 );
 
-router.get("/businessCategory/all", authenticateToken, async (req, res) => {
+router.get("/businessCategory/all", async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("business_categories")
@@ -110,7 +110,7 @@ router.get("/businessCategory/all", authenticateToken, async (req, res) => {
   }
 });
 
-router.get("/businessCategory/:id", authenticateToken, async (req, res) => {
+router.get("/businessCategory/:id", async (req, res) => {
   try {
     const { id } = req.params;
 

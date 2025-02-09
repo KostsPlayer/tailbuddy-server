@@ -121,7 +121,7 @@ router.get("/pets/all", async (req, res) => {
   }
 });
 
-router.get("/pets/:id", authenticateToken, async (req, res) => {
+router.get("/pets/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
