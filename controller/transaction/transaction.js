@@ -8,15 +8,16 @@ const app = express();
 configureMiddleware(app);
 const router = express.Router();
 
+// Create Transaction
 router.post("/transactions/create", authenticateToken, async (req, res) => {
   try {
-    const { pet_id, status } = req.body;
+    const { status, type } = req.body;
     const user_id = req.user.user_id;
 
-    if (!pet_id || !status) {
+    if (!status || !type) {
       return res.status(400).json({
         success: false,
-        message: "All fields (pet_id, status) are required.",
+        message: "All fields (status, type) are required.",
       });
     }
 
@@ -27,37 +28,18 @@ router.post("/transactions/create", authenticateToken, async (req, res) => {
       });
     }
 
-    const { data: petData, error: petError } = await supabase.from("pets").select("*").eq("pets_id", pet_id).single();
-
-    if (petError || !petData) {
-      return res.status(404).json({
-        success: false,
-        message: "Pet not found or unavailable.",
-      });
-    }
-
-    const { available } = false;
-
-    const { data: updatePet, error: updatePetError } = await supabase.from("pets").update({ available }).eq("pets_id", pet_id);
-
-    console.log(updatePet);
-
-    if (updatePetError) {
-      return res.status(400).json({
-        success: false,
-        message: "Failed to update pet availability.",
-        error: updatePetError.message,
-      });
-    }
+    const created_at = moment().format("YYYY-MM-DD HH:mm:ss");
+    const updated_at = created_at;
 
     const { data: transaction, error } = await supabase.from("transactions").insert([
       {
         user_id,
-        pet_id,
         status,
-        seller_id: petData.user_id,
+        type,
+        created_at,
+        updated_at,
       },
-    ]);
+    ]).select("*");
 
     if (error) {
       return res.status(400).json({
@@ -85,7 +67,7 @@ router.post("/transactions/create", authenticateToken, async (req, res) => {
 // Get All Transactions
 router.get("/transactions", authenticateToken, async (req, res) => {
   try {
-    const { data, error } = await supabase.from("transactions").select(`*, pets(*)`);
+    const { data, error } = await supabase.from("transactions").select("*");
 
     if (error) {
       return res.status(400).json({
@@ -114,7 +96,7 @@ router.get("/transactions/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase.from("transactions").select(`*, pets(*)`).eq("transactions_id", id).single();
+    const { data, error } = await supabase.from("transactions").select("*").eq("transactions_id", id).single();
 
     if (error) {
       return res.status(404).json({
@@ -142,7 +124,7 @@ router.get("/transactions-buyer", authenticateToken, async (req, res) => {
   try {
     const user_id = req.user.user_id;
 
-    const { data, error } = await supabase.from("transactions").select(`*, pets(*)`).eq("user_id", user_id);
+    const { data, error } = await supabase.from("transactions").select(`*`).eq("user_id", user_id);
 
     if (error) {
       return res.status(404).json({
@@ -170,7 +152,7 @@ router.get("/transactions-seller", authenticateToken, async (req, res) => {
   try {
     const seller_id = req.user.user_id;
 
-    const { data, error } = await supabase.from("transactions").select(`*, pets(*)`).eq("seller_id", seller_id);
+    const { data, error } = await supabase.from("transactions").select(`*`).eq("seller_id", seller_id);
 
     if (error) {
       return res.status(404).json({
@@ -197,7 +179,7 @@ router.get("/transactions-seller", authenticateToken, async (req, res) => {
 router.put("/transactions/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { pet_id, status } = req.body;
+    const { status, type } = req.body;
     const updated_at = moment().format("YYYY-MM-DD HH:mm:ss");
 
     if (status && !["pending", "done", "cancelled"].includes(status)) {
@@ -207,18 +189,9 @@ router.put("/transactions/:id", authenticateToken, async (req, res) => {
       });
     }
 
-    const { data: petData, error: petError } = await supabase.from("pets").select("*").eq("pets_id", pet_id).single();
-
-    if (petError || !petData) {
-      return res.status(404).json({
-        success: false,
-        message: "Pet not found or unavailable.",
-      });
-    }
-
     const updates = {
       ...(status && { status }),
-      seller_id: petData.user_id,
+      ...(type && { type }),
       updated_at,
     };
 
@@ -251,8 +224,6 @@ router.put("/transactions/:id", authenticateToken, async (req, res) => {
 router.delete("/transactions/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-
-    console.log(id);
 
     const { data, error } = await supabase.from("transactions").delete().eq("transactions_id", id).select("*");
 

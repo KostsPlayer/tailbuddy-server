@@ -12,6 +12,9 @@ import trasaction from "./controller/transaction/transaction.js";
 import product from "./controller/products/products.js";
 import user from "./controller/users/users.js";
 import petCategory from "./controller/petCategory/petCategory.js";
+import petSales from "./controller/petSales/petSales.js";
+import groomingReservations from "./controller/groomingReservations/groomingReservations.js";
+import prodctSales from "./controller/productSales/productSales.js";
 
 import roles from "./controller/roles/roles.js";
 
@@ -39,6 +42,9 @@ app.use("/api", trasaction);
 app.use("/api", product);
 app.use("/api", user);
 app.use("/api", petCategory);
+app.use("/api", petSales);
+app.use("/api", groomingReservations);
+app.use("/api", prodctSales);
 
 app.listen(port, () => {
   console.log(`running server on port ${port}`);
