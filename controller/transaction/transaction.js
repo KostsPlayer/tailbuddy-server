@@ -24,8 +24,7 @@ router.post("/transactions/create", authenticateToken, async (req, res) => {
     if (!["pending", "done", "cancelled"].includes(status)) {
       return res.status(400).json({
         success: false,
-        message:
-          "Status must be one of the following: 'pending', 'done', 'cancelled'.",
+        message: "Status must be one of the following: 'pending', 'done', 'cancelled'.",
       });
     }
 
@@ -71,9 +70,7 @@ router.post("/transactions/create", authenticateToken, async (req, res) => {
 // Get All Transactions
 router.get("/transactions", authenticateToken, async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from("transactions")
-      .select("*, users(*)");
+    const { data, error } = await supabase.from("transactions").select("*, users(*)");
 
     if (error) {
       return res.status(400).json({
@@ -102,11 +99,7 @@ router.get("/transactions/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase
-      .from("transactions")
-      .select("*,  users(*)")
-      .eq("transactions_id", id)
-      .single();
+    const { data, error } = await supabase.from("transactions").select("*,  users(*)").eq("transactions_id", id).single();
 
     if (error) {
       return res.status(404).json({
@@ -134,10 +127,7 @@ router.get("/transactions-buyer", authenticateToken, async (req, res) => {
   try {
     const user_id = req.user.user_id;
 
-    const { data, error } = await supabase
-      .from("transactions")
-      .select(`*`)
-      .eq("user_id", user_id);
+    const { data, error } = await supabase.from("transactions").select(`*`).eq("user_id", user_id);
 
     if (error) {
       return res.status(404).json({
@@ -165,10 +155,7 @@ router.get("/transactions-seller", authenticateToken, async (req, res) => {
   try {
     const seller_id = req.user.user_id;
 
-    const { data, error } = await supabase
-      .from("transactions")
-      .select(`*`)
-      .eq("seller_id", seller_id);
+    const { data, error } = await supabase.from("transactions").select(`*`).eq("seller_id", seller_id);
 
     if (error) {
       return res.status(404).json({
@@ -201,8 +188,7 @@ router.put("/transactions/:id", authenticateToken, async (req, res) => {
     if (status && !["pending", "done", "cancelled"].includes(status)) {
       return res.status(400).json({
         success: false,
-        message:
-          "Status must be one of the following: 'pending', 'done', 'cancelled'.",
+        message: "Status must be one of the following: 'pending', 'done', 'cancelled'.",
       });
     }
 
@@ -212,11 +198,7 @@ router.put("/transactions/:id", authenticateToken, async (req, res) => {
       updated_at,
     };
 
-    const { data, error } = await supabase
-      .from("transactions")
-      .update(updates)
-      .eq("transactions_id", id)
-      .select("*");
+    const { data, error } = await supabase.from("transactions").update(updates).eq("transactions_id", id).select("*");
 
     if (error) {
       return res.status(400).json({
@@ -241,35 +223,47 @@ router.put("/transactions/:id", authenticateToken, async (req, res) => {
   }
 });
 
-// Delete Transaction
+// Delete Transaction and Related Data
 router.delete("/transactions/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase
-      .from("transactions")
-      .delete()
-      .eq("transactions_id", id)
-      .select("*");
+    const supabaseClient = supabase; // Pastikan Supabase sudah dikonfigurasi dengan benar
 
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        message: "Failed to delete transaction.",
-        error: error.message,
-      });
+    // Gunakan transaction untuk memastikan semua operasi berhasil
+    const { error: groomingError } = await supabaseClient.from("grooming_reservations").delete().eq("transaction_id", id);
+
+    if (groomingError) throw groomingError;
+
+    const { error: petSalesError } = await supabaseClient.from("pet_sales").delete().eq("transaction_id", id);
+
+    if (petSalesError) throw petSalesError;
+
+    const { error: productSalesError } = await supabaseClient.from("product_sales").delete().eq("transaction_id", id);
+
+    if (productSalesError) throw productSalesError;
+
+    const { error: photographyError } = await supabaseClient.from("photograpies").delete().eq("transaction_id", id);
+
+    if (photographyError) throw photographyError;
+
+    // Setelah semua data terkait dihapus, hapus transaksi utama
+    const { data, error: transactionError } = await supabaseClient.from("transactions").delete().eq("transactions_id", id).select("*");
+
+    if (transactionError) {
+      throw transactionError;
     }
 
     return res.status(200).json({
       success: true,
-      message: "Transaction deleted successfully!",
+      message: "Transaction and related data deleted successfully!",
       data,
     });
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({
       success: false,
-      message: "An error occurred while deleting the transaction.",
+      message: "An error occurred while deleting the transaction and related data.",
       error: error.message,
     });
   }

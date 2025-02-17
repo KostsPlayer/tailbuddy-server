@@ -10,10 +10,10 @@ router.post("/photograpy/create", authenticateToken, async (req, res) => {
   try {
     const { transaction_id, price, schedule, service, status } = req.body;
 
-    if (!transaction_id || !price || !schedule || !service || !status) {
+    if (!transaction_id || !price || !schedule || !service) {
       return res.status(400).json({
         success: false,
-        message: "All fields (transaction_id, price, schedule, service, status) are required.",
+        message: "All fields (transaction_id, price, schedule, service) are required.",
       });
     }
 
@@ -27,7 +27,6 @@ router.post("/photograpy/create", authenticateToken, async (req, res) => {
           price,
           schedule,
           service,
-          status,
           created_at,
           updated_at: created_at,
         },
@@ -116,7 +115,7 @@ router.get("/photograpy/:id", authenticateToken, async (req, res) => {
 router.put("/photograpy/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { transaction_id, price, schedule, service, status } = req.body;
+    const { transaction_id, price, schedule, service } = req.body;
     const updated_at = moment().format("YYYY-MM-DD HH:mm:ss");
 
     const updates = {
@@ -124,7 +123,6 @@ router.put("/photograpy/:id", authenticateToken, async (req, res) => {
       ...(price && { price }),
       ...(schedule && { schedule }),
       ...(service && { service }),
-      ...(status && { status }),
       updated_at,
     };
 
