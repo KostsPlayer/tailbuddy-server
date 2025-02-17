@@ -46,7 +46,7 @@ router.post("/grooming-service/create", authenticateToken, async (req, res) => {
 });
 
 // Get All Grooming Services
-router.get("/grooming-service", authenticateToken, async (req, res) => {
+router.get("/grooming-service", async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("grooming_services")

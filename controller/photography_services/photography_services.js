@@ -41,32 +41,28 @@ router.post(
 );
 
 // Get All Photography Services
-router.get("/photography-service", authenticateToken, async (req, res) => {
+router.get("/photography-service", async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("photography_services")
       .select("*");
 
     if (error) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Failed to fetch photography services.",
-          error: error.message,
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Failed to fetch photography services.",
+        error: error.message,
+      });
     }
 
     res.status(200).json({ success: true, data });
   } catch (error) {
     console.error("Error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "An error occurred while fetching photography services.",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching photography services.",
+      error: error.message,
+    });
   }
 });
 
@@ -89,13 +85,11 @@ router.get("/photography-service/:id", authenticateToken, async (req, res) => {
     res.status(200).json({ success: true, data });
   } catch (error) {
     console.error("Error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "An error occurred while fetching photography service.",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "An error occurred while fetching photography service.",
+      error: error.message,
+    });
   }
 });
 
@@ -109,12 +103,10 @@ router.put(
       const { name, price } = req.body;
 
       if (!name || !price) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "All fields (name, price) are required.",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "All fields (name, price) are required.",
+        });
       }
 
       const { data, error } = await supabase
@@ -124,30 +116,24 @@ router.put(
         .select("*");
 
       if (error || !data.length) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Failed to update photography service.",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Failed to update photography service.",
+        });
       }
 
-      res
-        .status(200)
-        .json({
-          success: true,
-          message: "Photography service updated successfully!",
-          data,
-        });
+      res.status(200).json({
+        success: true,
+        message: "Photography service updated successfully!",
+        data,
+      });
     } catch (error) {
       console.error("Error:", error);
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "An error occurred while updating photography service.",
-          error: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred while updating photography service.",
+        error: error.message,
+      });
     }
   }
 );
@@ -166,29 +152,23 @@ router.delete(
         .eq("photography_services_id", id);
 
       if (error) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Failed to delete photography service.",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Failed to delete photography service.",
+        });
       }
 
-      res
-        .status(200)
-        .json({
-          success: true,
-          message: "Photography service deleted successfully!",
-        });
+      res.status(200).json({
+        success: true,
+        message: "Photography service deleted successfully!",
+      });
     } catch (error) {
       console.error("Error:", error);
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "An error occurred while deleting photography service.",
-          error: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred while deleting photography service.",
+        error: error.message,
+      });
     }
   }
 );
