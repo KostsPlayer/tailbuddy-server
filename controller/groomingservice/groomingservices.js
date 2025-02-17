@@ -78,7 +78,7 @@ router.get("/grooming-service/:id", authenticateToken, async (req, res) => {
     const { data, error } = await supabase
       .from("grooming_services")
       .select("*")
-      .eq("id", id)
+      .eq("grooming_services_id", id)
       .single();
 
     if (error || !data) {
@@ -117,7 +117,7 @@ router.put(
       const { data, error } = await supabase
         .from("grooming_services")
         .update({ name, price })
-        .eq("id", id)
+        .eq("grooming_services_id", id)
         .select("*");
 
       if (error || !data.length) {
@@ -154,7 +154,7 @@ router.delete(
       const { data, error } = await supabase
         .from("grooming_services")
         .delete()
-        .eq("id", id);
+        .eq("grooming_services_id", id);
 
       if (error) {
         return res.status(400).json({
