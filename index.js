@@ -17,6 +17,8 @@ import groomingReservations from "./controller/groomingReservations/groomingRese
 import prodctSales from "./controller/productSales/productSales.js";
 import eventParticipant from "./controller/eventParticipant/eventParticipant.js";
 import photograpy from "./controller/photograpy/photograpy.js";
+import groomingServices from "./controller/groomingservice/groomingservices.js";
+import photocraphyService from "./controller/photography_services/photography_services.js";
 
 import roles from "./controller/roles/roles.js";
 
@@ -49,6 +51,8 @@ app.use("/api", groomingReservations);
 app.use("/api", prodctSales);
 app.use("/api", eventParticipant);
 app.use("/api", photograpy);
+app.use("/api", groomingServices);
+app.use("/api", photocraphyService);
 
 app.listen(port, () => {
   console.log(`running server on port ${port}`);
