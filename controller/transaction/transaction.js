@@ -24,22 +24,26 @@ router.post("/transactions/create", authenticateToken, async (req, res) => {
     if (!["pending", "done", "cancelled"].includes(status)) {
       return res.status(400).json({
         success: false,
-        message: "Status must be one of the following: 'pending', 'done', 'cancelled'.",
+        message:
+          "Status must be one of the following: 'pending', 'done', 'cancelled'.",
       });
     }
 
     const created_at = moment().format("YYYY-MM-DD HH:mm:ss");
     const updated_at = created_at;
 
-    const { data: transaction, error } = await supabase.from("transactions").insert([
-      {
-        user_id,
-        status,
-        type,
-        created_at,
-        updated_at,
-      },
-    ]).select("*");
+    const { data: transaction, error } = await supabase
+      .from("transactions")
+      .insert([
+        {
+          user_id,
+          status,
+          type,
+          created_at,
+          updated_at,
+        },
+      ])
+      .select("*");
 
     if (error) {
       return res.status(400).json({
@@ -67,7 +71,9 @@ router.post("/transactions/create", authenticateToken, async (req, res) => {
 // Get All Transactions
 router.get("/transactions", authenticateToken, async (req, res) => {
   try {
-    const { data, error } = await supabase.from("transactions").select("*");
+    const { data, error } = await supabase
+      .from("transactions")
+      .select("*, users(*)");
 
     if (error) {
       return res.status(400).json({
@@ -96,7 +102,11 @@ router.get("/transactions/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase.from("transactions").select("*").eq("transactions_id", id).single();
+    const { data, error } = await supabase
+      .from("transactions")
+      .select("*,  users(*)")
+      .eq("transactions_id", id)
+      .single();
 
     if (error) {
       return res.status(404).json({
@@ -124,7 +134,10 @@ router.get("/transactions-buyer", authenticateToken, async (req, res) => {
   try {
     const user_id = req.user.user_id;
 
-    const { data, error } = await supabase.from("transactions").select(`*`).eq("user_id", user_id);
+    const { data, error } = await supabase
+      .from("transactions")
+      .select(`*`)
+      .eq("user_id", user_id);
 
     if (error) {
       return res.status(404).json({
@@ -152,7 +165,10 @@ router.get("/transactions-seller", authenticateToken, async (req, res) => {
   try {
     const seller_id = req.user.user_id;
 
-    const { data, error } = await supabase.from("transactions").select(`*`).eq("seller_id", seller_id);
+    const { data, error } = await supabase
+      .from("transactions")
+      .select(`*`)
+      .eq("seller_id", seller_id);
 
     if (error) {
       return res.status(404).json({
@@ -185,7 +201,8 @@ router.put("/transactions/:id", authenticateToken, async (req, res) => {
     if (status && !["pending", "done", "cancelled"].includes(status)) {
       return res.status(400).json({
         success: false,
-        message: "Status must be one of the following: 'pending', 'done', 'cancelled'.",
+        message:
+          "Status must be one of the following: 'pending', 'done', 'cancelled'.",
       });
     }
 
@@ -195,7 +212,11 @@ router.put("/transactions/:id", authenticateToken, async (req, res) => {
       updated_at,
     };
 
-    const { data, error } = await supabase.from("transactions").update(updates).eq("transactions_id", id).select("*");
+    const { data, error } = await supabase
+      .from("transactions")
+      .update(updates)
+      .eq("transactions_id", id)
+      .select("*");
 
     if (error) {
       return res.status(400).json({
@@ -225,7 +246,11 @@ router.delete("/transactions/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase.from("transactions").delete().eq("transactions_id", id).select("*");
+    const { data, error } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("transactions_id", id)
+      .select("*");
 
     if (error) {
       return res.status(400).json({
