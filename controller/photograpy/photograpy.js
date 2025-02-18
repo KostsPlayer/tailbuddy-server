@@ -13,7 +13,8 @@ router.post("/photograpy/create", authenticateToken, async (req, res) => {
     if (!transaction_id || !price || !schedule || !service) {
       return res.status(400).json({
         success: false,
-        message: "All fields (transaction_id, price, schedule, service) are required.",
+        message:
+          "All fields (transaction_id, price, schedule, service) are required.",
       });
     }
 
@@ -59,7 +60,9 @@ router.post("/photograpy/create", authenticateToken, async (req, res) => {
 // Get All photograpys
 router.get("/photograpy", authenticateToken, async (req, res) => {
   try {
-    const { data, error } = await supabase.from("photograpies").select("*");
+    const { data, error } = await supabase
+      .from("photograpies")
+      .select("*, transactions(*), photography_services(*)");
 
     if (error) {
       return res.status(400).json({
@@ -88,7 +91,11 @@ router.get("/photograpy/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase.from("photograpies").select("*").eq("grooming_reservations_id", id).single();
+    const { data, error } = await supabase
+      .from("photograpies")
+      .select("*, transactions(*), photography_services(*)")
+      .eq("grooming_reservations_id", id)
+      .single();
 
     if (error) {
       return res.status(404).json({
@@ -126,7 +133,11 @@ router.put("/photograpy/:id", authenticateToken, async (req, res) => {
       updated_at,
     };
 
-    const { data, error } = await supabase.from("photograpies").update(updates).eq("grooming_reservations_id", id).select("*");
+    const { data, error } = await supabase
+      .from("photograpies")
+      .update(updates)
+      .eq("grooming_reservations_id", id)
+      .select("*");
 
     if (error) {
       return res.status(400).json({
@@ -156,7 +167,11 @@ router.delete("/photograpy/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { data, error } = await supabase.from("photograpies").delete().eq("grooming_reservations_id", id).select("*");
+    const { data, error } = await supabase
+      .from("photograpies")
+      .delete()
+      .eq("grooming_reservations_id", id)
+      .select("*");
 
     if (error) {
       return res.status(400).json({
