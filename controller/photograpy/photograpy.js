@@ -62,7 +62,7 @@ router.get("/photograpy", authenticateToken, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("photograpies")
-      .select("*, transactions(*), photography_services(*)");
+      .select("*, photography_services(*)");
 
     if (error) {
       return res.status(400).json({
@@ -93,7 +93,7 @@ router.get("/photograpy/:id", authenticateToken, async (req, res) => {
 
     const { data, error } = await supabase
       .from("photograpies")
-      .select("*, transactions(*), photography_services(*)")
+      .select("*, photography_services(*)")
       .eq("grooming_reservations_id", id)
       .single();
 

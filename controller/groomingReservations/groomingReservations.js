@@ -66,7 +66,7 @@ router.get("/grooming-reservations", authenticateToken, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("grooming_reservations")
-      .select("*, transactions(*), grooming_services(*)");
+      .select("*, grooming_services(*)");
 
     if (error) {
       return res.status(400).json({
@@ -100,7 +100,7 @@ router.get(
 
       const { data, error } = await supabase
         .from("grooming_reservations")
-        .select("*, transactions(*), grooming_services(*)")
+        .select("*, grooming_services(*)")
         .eq("grooming_reservations_id", id)
         .single();
 

@@ -95,7 +95,9 @@ router.post("/product-sales/create", authenticateToken, async (req, res) => {
 // Get All Product Sales
 router.get("/product-sales", authenticateToken, async (req, res) => {
   try {
-    const { data, error } = await supabase.from("product_sales").select(`*, product:product_id(*), transaction:transaction_id(*)`);
+    const { data, error } = await supabase
+      .from("product_sales")
+      .select(`*, products(*)`);
 
     if (error) {
       return res.status(400).json({
@@ -125,7 +127,7 @@ router.get("/product-sales/:id", authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { data, error } = await supabase
       .from("product_sales")
-      .select(`*, product:product_id(*), transaction:transaction_id(*)`)
+      .select(`*, product:product_id(*)`)
       .eq("product_sales_id", id)
       .single();
 
@@ -159,7 +161,8 @@ router.put("/product-sales/:id", authenticateToken, async (req, res) => {
     if (!transaction_id || !product_id || !quantity || !price) {
       return res.status(400).json({
         success: false,
-        message: "Fields transaction_id, product_id, quantity, and price are required.",
+        message:
+          "Fields transaction_id, product_id, quantity, and price are required.",
       });
     }
 
@@ -196,7 +199,9 @@ router.put("/product-sales/:id", authenticateToken, async (req, res) => {
     if (adjustedStock < 0) {
       return res.status(400).json({
         success: false,
-        message: `Insufficient stock. Available: ${product.stock + sale.quantity}, Requested: ${quantity}`,
+        message: `Insufficient stock. Available: ${
+          product.stock + sale.quantity
+        }, Requested: ${quantity}`,
       });
     }
 
@@ -293,7 +298,10 @@ router.delete("/product-sales/:id", authenticateToken, async (req, res) => {
 
     if (!productError && product) {
       const newStock = product.stock + sale.quantity;
-      await supabase.from("products").update({ stock: newStock }).eq("products_id", sale.product_id);
+      await supabase
+        .from("products")
+        .update({ stock: newStock })
+        .eq("products_id", sale.product_id);
     }
 
     return res.status(200).json({

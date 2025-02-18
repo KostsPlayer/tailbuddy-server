@@ -56,7 +56,7 @@ router.get("/pet-sales", authenticateToken, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from("pet_sales")
-      .select(`*, transactions(*), pets(*)`);
+      .select(`*, pets(*)`);
 
     if (error) {
       return res.status(400).json({
@@ -87,7 +87,7 @@ router.get("/pet-sales/:id", authenticateToken, async (req, res) => {
 
     const { data, error } = await supabase
       .from("pet_sales")
-      .select(`*, transactions(*), pets(*)`)
+      .select(`*, pets(*)`)
       .eq("pet_sales_id", id)
       .single();
 
